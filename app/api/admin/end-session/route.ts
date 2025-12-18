@@ -1,24 +1,45 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/adminAuth";
-import { supabaseServer } from "@/lib/supabaseServer";
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: NextRequest) {
-  const auth = requireAdmin(req);
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: 401 });
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-  const body = await req.json().catch(() => null) as { session_id?: string } | null;
-  const session_id = body?.session_id?.trim();
-  if (!session_id) return NextResponse.json({ error: "session_id is required" }, { status: 400 });
-
-  const sb = supabaseServer();
-  const { data, error } = await sb
+export async function POST() {
+  // Find active session
+  const { data: session, error: fetchError } = await supabase
     .from("sessions")
-    .update({ status: "closed", ended_at: new Date().toISOString() })
-    .eq("session_id", session_id)
+    .select("*")
     .eq("status", "active")
-    .select("session_id,event_name,status,started_at,ended_at")
+    .is("ended_at", null)
+    .order("started_at", { ascending: false })
+    .limit(1)
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ ok: true, session: data });
+  if (fetchError || !session) {
+    return NextResponse.json(
+      { error: "No active session found" },
+      { status: 400 }
+    );
+  }
+
+  // End the session
+  const { error: updateError } = await supabase
+    .from("sessions")
+    .update({
+      status: "ended",
+      is_active: false,
+      ended_at: new Date().toISOString()
+    })
+    .eq("id", session.id);
+
+  if (updateError) {
+    return NextResponse.json(
+      { error: updateError.message },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ success: true });
 }
