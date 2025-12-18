@@ -66,7 +66,7 @@ export default function ScannerPage() {
     const devices = await BrowserMultiFormatReader.listVideoInputDevices();
     const preferred = devices[0]?.deviceId;
 
-    const controls = await reader.decodeFromVideoDevice(preferred || null, videoRef.current, async (result, err, ctrl) => {
+const controls = await reader.decodeFromVideoDevice(preferred || undefined, videoRef.current, async (result, err, ctrl) => {
       if (result) {
         const text = result.getText().trim();
         // QR value is Employee ID
