@@ -124,7 +124,22 @@ export default function AdminPage() {
                 <>
                   <input className="input" placeholder="Event name (e.g., Flag Raising)" value={eventName} onChange={(e) => setEventName(e.target.value)} />
                   <div style={{ height: 10 }} />
-                  <button className="btn" onClick={startSession} disabled={!eventName || !pin || !deviceId}>Start session</button>
+                  {activeSession ? (
+  <button
+    onClick={endSession}
+    className="bg-red-600 text-white px-4 py-2 rounded"
+  >
+    End Session
+  </button>
+) : (
+  <button
+    onClick={startSession}
+    className="bg-green-600 text-white px-4 py-2 rounded"
+  >
+    Start Session
+  </button>
+)}
+
                   <p className="muted">You must end the current session before starting another.</p>
                 </>
               )}
