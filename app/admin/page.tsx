@@ -51,22 +51,23 @@ export default function AdminPage() {
   }
 
   async function endSession() {
-    if (!active?.session_id) return;
-    setMsg(null);
-    const res = await fetch("/api/admin/end-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-admin-pin": pin },
-      body: JSON.stringify({ session_id: active.session_id }),
-    });
+  setMsg(null);
+
+  const res = await fetch("/api/admin/end-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-pin": pin },
+  });
+
+  if (!res.ok) {
     const data = await res.json();
-    if (!res.ok || data?.error) {
-      setMsg({ type: "red", text: data?.error || "Failed to end session" });
-      await refreshActive();
-      return;
-    }
-    setMsg({ type: "green", text: `Session ended: ${data.session.session_id}` });
-    await refreshActive();
+    setMsg(data.error || "Failed to end session");
+    return;
   }
+
+  setEventName("");
+  await refreshActive();
+}
+
 
   async function exportCsv() {
     const url = active?.session_id ? `/api/admin/export?session_id=${encodeURIComponent(active.session_id)}&pin=${encodeURIComponent(pin)}` : `/api/admin/export?pin=${encodeURIComponent(pin)}`;
