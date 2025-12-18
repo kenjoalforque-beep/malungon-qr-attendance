@@ -96,7 +96,12 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-xl mx-auto p-4 space-y-4">
-      <SessionHeader />
+      <SessionHeader
+  active={!!activeSession}
+  eventName={activeSession?.event_name}
+  sessionId={activeSession?.session_id}
+/>
+
 
       <div>
         <label className="block text-sm font-medium">Admin PIN</label>
