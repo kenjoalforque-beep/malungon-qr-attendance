@@ -52,7 +52,10 @@ export async function GET() {
     if (r.method === "scan") scanCount++;
     if (r.method === "manual") manualCount++;
 
-    const dept = r.employees?.department || "Unassigned";
+    const dept = Array.isArray(r.employees)
+      ? (r.employees[0]?.department ?? "Unassigned")
+      : ((r.employees as any)?.department ?? "Unassigned");
+
     const cur = deptMap.get(dept) || { department: dept, scan: 0, manual: 0, total: 0 };
     if (r.method === "scan") cur.scan++;
     if (r.method === "manual") cur.manual++;
